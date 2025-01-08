@@ -4,7 +4,14 @@ use cosmwasm_schema::{cw_serde, QueryResponses};
 pub struct InstantiateMsg {}
 
 #[cw_serde]
-pub enum ExecuteMsg {}
+pub enum ExecuteMsg {
+    BuyStorage {
+        for_address: String,
+        duration: i64,
+        bytes: i64,
+        payment_denom: String,
+    }
+}
 
 #[cw_serde]
 #[derive(QueryResponses)]
