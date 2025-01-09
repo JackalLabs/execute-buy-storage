@@ -10,7 +10,16 @@ pub enum ExecuteMsg {
         duration: i64,
         bytes: i64,
         payment_denom: String,
-    }
+    },
+
+    MsgBuyStorage {
+        creator: String,
+        for_address: String,
+        duration_days: i64,
+        bytes: i64,
+        payment_denom: String,
+        referral: String,
+    },
 }
 
 #[cw_serde]
