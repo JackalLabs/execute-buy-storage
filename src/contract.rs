@@ -38,6 +38,7 @@ pub fn execute(
             bytes,
             payment_denom,
         } => execute::buy_storage(deps, env, info, for_address, duration, bytes, payment_denom),
+        _ => unimplemented!(),
     }
 }
 
@@ -48,18 +49,34 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 
 mod execute {
     use crate::error::ContractError;
-    use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+    use crate::msg::ExecuteMsg::MsgBuyStorage;
+    use cosmwasm_std::{to_json_binary, AnyMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 
     pub fn buy_storage(
-        deps: DepsMut,
-        env: Env,
+        _deps: DepsMut,
+        _env: Env,
         info: MessageInfo,
         for_address: String,
         duration: i64,
         bytes: i64,
         payment_denom: String,
     ) -> Result<Response, ContractError> {
-        unimplemented!()
+        let tx = MsgBuyStorage {
+            creator: info.sender.into_string(),
+            for_address: for_address,
+            duration_days: duration,
+            bytes: bytes,
+            payment_denom: payment_denom,
+            referral: "execute-buy-storage".to_string(),
+        };
+
+        let resp = Response::new()
+            .add_message(CosmosMsg::Any(AnyMsg {
+                type_url: "/canine_chain.storage.MsgBuyStorage".to_string(),
+                value: to_json_binary(&tx)?,
+            }))
+            .add_attribute("action", "buy_storage");
+        Ok(resp)
     }
 }
 #[cfg(test)]
