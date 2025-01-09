@@ -52,7 +52,7 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 mod execute {
     use crate::msg::ExecuteMsg::MsgBuyStorage;
     use crate::{error::ContractError, state::PAYMENT};
-    use cosmwasm_std::{to_json_binary, AnyMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response};
+    use cosmwasm_std::{to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 
     pub fn buy_storage(
         deps: DepsMut,
@@ -78,10 +78,10 @@ mod execute {
         };
 
         let resp = Response::new()
-            .add_message(CosmosMsg::Any(AnyMsg {
+            .add_message(CosmosMsg::Stargate {
                 type_url: "/canine_chain.storage.MsgBuyStorage".to_string(),
                 value: to_json_binary(&tx)?,
-            }))
+            })
             .add_attribute("action", "buy_storage");
         Ok(resp)
     }
