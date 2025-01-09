@@ -50,8 +50,8 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
-    use crate::{error::ContractError, state::PAYMENT};
     use crate::msg::ExecuteMsg::MsgBuyStorage;
+    use crate::{error::ContractError, state::PAYMENT};
     use cosmwasm_std::{to_json_binary, AnyMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 
     pub fn buy_storage(
@@ -63,7 +63,12 @@ mod execute {
         bytes: i64,
         payment_denom: String,
     ) -> Result<Response, ContractError> {
-        let tx = MsgBuyStorage {
+        let payment: Vec<String> = PAYMENT.load(deps.storage)?;
+        if !payment.contains(&payment_denom) {
+            return Err(ContractError::InvalidPayment {});
+        }
+
+        let tx: crate::msg::ExecuteMsg = MsgBuyStorage {
             creator: info.sender.into_string(),
             for_address,
             duration_days: duration,
@@ -71,8 +76,6 @@ mod execute {
             payment_denom,
             referral: "execute-buy-storage".to_string(),
         };
-        
-        let payment: Vec<String> = PAYMENT.load(deps.storage)?;
 
         let resp = Response::new()
             .add_message(CosmosMsg::Any(AnyMsg {
