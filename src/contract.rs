@@ -5,6 +5,7 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult}
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::state::PAYMENT;
 
 /*
 // version info for migration info
@@ -14,12 +15,13 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    _deps: DepsMut,
+    deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    unimplemented!()
+    PAYMENT.save(deps.storage, &msg.payment)?;
+    Ok(Response::new())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -48,12 +50,12 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
-    use crate::error::ContractError;
+    use crate::{error::ContractError, state::PAYMENT};
     use crate::msg::ExecuteMsg::MsgBuyStorage;
     use cosmwasm_std::{to_json_binary, AnyMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 
     pub fn buy_storage(
-        _deps: DepsMut,
+        deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         for_address: String,
@@ -63,12 +65,14 @@ mod execute {
     ) -> Result<Response, ContractError> {
         let tx = MsgBuyStorage {
             creator: info.sender.into_string(),
-            for_address: for_address,
+            for_address,
             duration_days: duration,
-            bytes: bytes,
-            payment_denom: payment_denom,
+            bytes,
+            payment_denom,
             referral: "execute-buy-storage".to_string(),
         };
+        
+        let payment: Vec<String> = PAYMENT.load(deps.storage)?;
 
         let resp = Response::new()
             .add_message(CosmosMsg::Any(AnyMsg {
