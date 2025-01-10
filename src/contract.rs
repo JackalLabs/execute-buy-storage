@@ -68,14 +68,16 @@ mod execute {
             return Err(ContractError::InvalidPayment {});
         }
 
-        let tx: crate::msg::ExecuteMsg = MsgBuyStorage {
-            creator: info.sender.into_string(),
+        let tx = MsgBuyStorage {
+            creator: info.sender.to_string(),
             for_address,
             duration_days: duration,
             bytes,
             payment_denom,
             referral: "execute-buy-storage".to_string(),
         };
+        // example from canined
+        // {"body":{"messages":[{"@type":"/canine_chain.storage.MsgBuyStorage","creator":"jkl1jnysschmhmq0frqr3tung9gvg0rwadjzh82sta","for_address":"jkl10k05lmc88q5ft3lm00q30qkd9x6654h3lejnct","duration_days":"31","bytes":"1099511621","payment_denom":"ujkl","referral":""}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[{"denom":"ujkl","amount":"10000"}],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
 
         let resp = Response::new()
             .add_message(CosmosMsg::Stargate {

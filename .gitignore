@@ -16,3 +16,6 @@ code.wasm
 # IDEs
 *.iml
 .idea
+
+# Test data
+data.txt

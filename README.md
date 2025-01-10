@@ -1,5 +1,11 @@
 # execute-buy-storage
 
+## Build With CosmWasm/optimizer
+```
+docker run --rm -v "$(pwd)":/code --mount type=volume,source="devcontract_cache_burner",target=/target/ --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry cosmwasm/optimizer:0.16.1 .
+```
+This should build the contract to /artifacts.
+
 ## Uploading Code:
 ```
 canined tx wasm store [filename] --from [address] --fees=[fee]ujkl --gas=[gas]
