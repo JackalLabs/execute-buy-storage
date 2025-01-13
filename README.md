@@ -20,7 +20,7 @@ This returns the uploaded .wasm file.
 
 ## Instantiate Contract:
 ```
-canined tx wasm instantiate [id] '{"payment": ["ujkl"]}' --from [address]
+canined tx wasm instantiate [id] '{"payment": ["ujkl"]}' --from [address] --no-admin --fees=[fee]ujkl --gas=[gas]
 ```
 This returns the contract address.
 

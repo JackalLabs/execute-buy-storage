@@ -1,6 +1,6 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 // use cw2::set_contract_version;
 
 use crate::error::ContractError;
@@ -30,7 +30,7 @@ pub fn execute(
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
-) -> Result<Response, ContractError> {
+) -> Result<Response<ExecuteMsg>, ContractError> {
     use ExecuteMsg::*;
 
     match msg {
@@ -50,7 +50,7 @@ pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
-    use crate::msg::ExecuteMsg::MsgBuyStorage;
+    use crate::msg::ExecuteMsg::{self, MsgBuyStorage};
     use crate::{error::ContractError, state::PAYMENT};
     use cosmwasm_std::{to_json_binary, CosmosMsg, DepsMut, Env, MessageInfo, Response};
 
@@ -62,12 +62,16 @@ mod execute {
         duration: i64,
         bytes: i64,
         payment_denom: String,
-    ) -> Result<Response, ContractError> {
+    ) -> Result<Response<ExecuteMsg>, ContractError> {
         let payment: Vec<String> = PAYMENT.load(deps.storage)?;
         if !payment.contains(&payment_denom) {
             return Err(ContractError::InvalidPayment {});
         }
 
+        /*        
+        example from canined
+        // {"body":{"messages":[{"@type":"/canine_chain.storage.MsgBuyStorage","creator":"jkl1jnysschmhmq0frqr3tung9gvg0rwadjzh82sta","for_address":"jkl10k05lmc88q5ft3lm00q30qkd9x6654h3lejnct","duration_days":"31","bytes":"1099511621","payment_denom":"ujkl","referral":""}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[{"denom":"ujkl","amount":"10000"}],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
+        */
         let tx = MsgBuyStorage {
             creator: info.sender.to_string(),
             for_address,
@@ -76,17 +80,24 @@ mod execute {
             payment_denom,
             referral: "execute-buy-storage".to_string(),
         };
-        // example from canined
-        // {"body":{"messages":[{"@type":"/canine_chain.storage.MsgBuyStorage","creator":"jkl1jnysschmhmq0frqr3tung9gvg0rwadjzh82sta","for_address":"jkl10k05lmc88q5ft3lm00q30qkd9x6654h3lejnct","duration_days":"31","bytes":"1099511621","payment_denom":"ujkl","referral":""}],"memo":"","timeout_height":"0","extension_options":[],"non_critical_extension_options":[]},"auth_info":{"signer_infos":[],"fee":{"amount":[{"denom":"ujkl","amount":"10000"}],"gas_limit":"200000","payer":"","granter":""}},"signatures":[]}
-
         let resp = Response::new()
             .add_message(CosmosMsg::Stargate {
                 type_url: "/canine_chain.storage.MsgBuyStorage".to_string(),
                 value: to_json_binary(&tx)?,
             })
             .add_attribute("action", "buy_storage");
+        
+        /*
+        custom cosmos msg also fails
+        let resp = Response::new()
+            .add_message(CosmosMsg::Custom(tx))
+            .add_attribute("action", "buy_storage");
+        */
         Ok(resp)
     }
 }
+
 #[cfg(test)]
 mod tests {}
+
+impl CustomMsg for ExecuteMsg {}
